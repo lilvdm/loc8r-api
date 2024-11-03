@@ -23,6 +23,26 @@ const homelist = (req, res) => {
     request(requestOptions, (err, { statusCode }, body) => {
         let data = [];
         if (err) {
+            console.error('Request error:', err);
+            renderHomepage(req, res, data);
+            return;
+        }
+        if (statusCode === 200 && Array.isArray(body)) { // Check if `body` is an array
+            data = body.map(item => {
+                item.distance = formatDistance(item.distance);
+                return item;
+            });
+        } else {
+            console.error('Unexpected response format:', body);
+        }
+        renderHomepage(req, res, data);
+    });
+};
+
+
+    request(requestOptions, (err, { statusCode }, body) => {
+        let data = [];
+        if (err) {
             console.error(err);
             renderHomepage(req, res, data);
             return;
