@@ -89,7 +89,6 @@ const homelist = (req, res) => {
             message
         });
     };
-};
 
 const renderDetailPage = function (req, res, location) {
     res.render('location-info', {
