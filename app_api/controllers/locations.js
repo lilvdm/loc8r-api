@@ -1,200 +1,184 @@
 const mongoose = require('mongoose');
 const Loc = mongoose.model('Location');
 
-// Function to convert meters to kilometers
-const meterToKilometer = (meters) => meters / 1000;
-
-const showError = (req, res, status) => {
-    let title = '';
-    let content = '';
-
-    if (status === 404) {
-        title = '404, page not found';
-        content = 'Oh dear. Looks like the location you are looking for does not exist. Sorry.';
-    } else {
-        title = `${status}, something's gone wrong`;
-        content = 'Something, somewhere, has gone just a little bit wrong.';
-    }
-
-    res.status(status);
-    res.render('generic-text', {
-        title,
-        content
-    });
-};
-
-// List locations by distance
 const locationsListByDistance = async (req, res) => {
-    const { lng, lat, maxDistance = 300000 } = req.query; // Default max distance of 300 km if not provided
-
+    const lng = parseFloat(req.query.lng);
+    const lat = parseFloat(req.query.lat);
+    const near = {
+        type: "Point",
+        coordinates: [lng, lat]
+    };
+    const geoOptions = {
+        distanceField: "distance.calculated",
+        key: 'coords',
+        spherical: true,
+        maxDistance: 200000,
+    };
     if (!lng || !lat) {
-        return res.status(400).json({
-            "message": "Longitude and latitude query parameters are required"
-        });
+        return res
+            .status(404)
+            .json({ "message": "lng and lat query parameters are required" });
     }
 
     try {
-        const point = {
-            type: "Point",
-            coordinates: [parseFloat(lng), parseFloat(lat)]
-        };
-
-        const geoOptions = {
-            distanceField: "distance.calculated",
-            key: "coords",
-            spherical: true,
-            maxDistance: parseFloat(maxDistance)
-        };
-
         const results = await Loc.aggregate([
             {
                 $geoNear: {
-                    near: point,
+                    near,
                     ...geoOptions
                 }
             }
         ]);
-
-        // Map over results to convert distance to kilometers and shape response
-        const locations = results.map(result => ({
-            _id: result._id,
-            name: result.name,
-            address: result.address,
-            facilities: result.facilities,
-            distance: `${meterToKilometer(result.distance.calculated).toFixed(2)} km`
-        }));
-
-        res.status(200).json(locations);
+        const locations = results.map(result => {
+            return {
+                _id: result._id,
+                name: result.name,
+                address: result.address,
+                rating: result.rating,
+                facilities: result.facilities,
+                distance: `${result.distance.calculated.toFixed()}`
+            }
+        });
+        res
+            .status(200)
+            .json(locations);
     } catch (err) {
-        console.error("Error in locationsListByDistance:", err);
-        return res.status(500).json({ message: "Internal server error" }); // JSON response for 500 errors
+        res
+            .status(404)
+            .json(err);
     }
 };
 
-// Create a new location
 const locationsCreate = async (req, res) => {
-    const {
-        name,
-        address,
-        facilities,
-        lng,
-        lat,
-        days1,
-        opening1,
-        closing1,
-        closed1,
-        days2,
-        opening2,
-        closing2,
-        closed2
-    } = req.body;
-
-    // Log the received request body to debug
-    console.log("Received request body:", req.body);
-
-    // Validate that required fields are provided
-    if (!name || !lng || !lat || !facilities) {
-        return res.status(400).json({
-            "message": "Name, longitude, latitude, and facilities are required"
-        });
-    }
-
     try {
         const location = await Loc.create({
-            name,
-            address,
-            facilities: facilities.split(","), // Split facilities into array
+            name: req.body.name,
+            address: req.body.address,
+            facilities: req.body.facilities.split(","),
             coords: {
                 type: "Point",
-                coordinates: [parseFloat(lng), parseFloat(lat)]
+                coordinates: [
+                    parseFloat(req.body.lng),
+                    parseFloat(req.body.lat)
+                ]
             },
             openingTimes: [
                 {
-                    days: days1,
-                    opening: opening1,
-                    closing: closing1,
-                    closed: closed1
+                    days: req.body.days1,
+                    opening: req.body.opening1,
+                    closing: req.body.closing1,
+                    closed: req.body.closed1
                 },
                 {
-                    days: days2,
-                    opening: opening2,
-                    closing: closing2,
-                    closed: closed2
+                    days: req.body.days2,
+                    opening: req.body.opening2,
+                    closing: req.body.closing2,
+                    closed: req.body.closed2
                 }
             ]
         });
-        return res.status(201).json(location);
+        return res
+            .status(201)
+            .json(location);
+
     } catch (err) {
-        console.error("Error in locationsCreate:", err);
-        return res.status(500).json({ message: "Internal server error" }); // JSON response for 500 errors
+        return res
+            .status(400)
+            .json(err);
     }
 };
 
-// Delete a location by ID
+const locationsReadOne = async (req, res) => {
+    try {
+        const location = await Loc.findById(req.params.locationid).exec();
+        if (!location) {
+            return res
+                .status(404)
+                .json({ "message": "location not found" });
+        }
+        return res
+            .status(200)
+            .json(location);
+    } catch (err) {
+        return res
+            .status(404)
+            .json(err);
+    }
+};
+
+
+const locationsUpdateOne = async (req, res) => {
+    if (!req.params.locationid) {
+        return res
+            .status(404)
+            .json({
+                "message": "Not found, locationid is required"
+            });
+    }
+    try {
+        const location = await Loc.findById(req.params.locationid).select('-reviews -rating').exec();
+
+        if (!location) {
+            return res
+                .status(404)
+                .json({
+                    "message": "locationid not found"
+                });
+        }
+        location.name = req.body.name;
+        location.address = req.body.address;
+        location.facilities = req.body.facilities.split(',');
+        location.coords = [
+            parseFloat(req.body.lng),
+            parseFloat(req.body.lat)
+        ];
+        location.openingTimes = [{
+            days: req.body.days1,
+            opening: req.body.opening1,
+            closing: req.body.closing1,
+            closed: req.body.closed1,
+        }, {
+            days: req.body.days2,
+            opening: req.body.opening2,
+            closing: req.body.closing2,
+            closed: req.body.closed2,
+        }];
+        const updatedLocation = await location.save();
+        return res
+            .status(200)
+            .json(updatedLocation);
+    } catch (err) {
+        return res
+            .status(400)
+            .json(err);
+    }
+};
+
 const locationsDeleteOne = async (req, res) => {
     const { locationid } = req.params;
-
     if (!locationid) {
-        return showError(req, res, 404); // Use showError for missing ID
+        return res
+            .status(404)
+            .json({
+                "message": "No Location"
+            });
     }
-
     try {
         const location = await Loc.findByIdAndRemove(locationid).exec();
-
         if (!location) {
-            return showError(req, res, 404); // Use showError for not found
+            return res
+                .status(404)
+                .json({
+                    "message": "locationid not found"
+                });
         }
-
-        return res.status(204).json(null);
+        return res
+            .status(204)
+            .json(null);
     } catch (err) {
-        console.error("Error deleting location:", err);
-        return res.status(500).json({ message: "Internal server error" }); // JSON response for 500 errors
-    }
-};
-
-// Read a specific location by ID
-const locationsReadOne = async (req, res) => {
-    const { locationid } = req.params;
-
-    if (!locationid) {
-        return showError(req, res, 404); // Use showError for missing ID
-    }
-
-    try {
-        const location = await Loc.findById(locationid).exec();
-
-        if (!location) {
-            return showError(req, res, 404); // Handle not found case
-        }
-
-        res.status(200).json(location);
-    } catch (err) {
-        console.error("Error reading location:", err);
-        return showError(req, res, 500); // Handle server error
-    }
-};
-
-
-
-// Update a specific location by ID
-const locationsUpdateOne = async (req, res) => {
-    const { locationid } = req.params;
-
-    if (!locationid) {
-        return showError(req, res, 404); // Use showError for missing ID
-    }
-
-    try {
-        const updatedLocation = await Loc.findByIdAndUpdate(locationid, req.body, { new: true }).exec();
-
-        if (!updatedLocation) {
-            return showError(req, res, 404); // Use showError for not found
-        }
-
-        res.status(200).json(updatedLocation);
-    } catch (err) {
-        console.error("Error updating location:", err);
-        return res.status(500).json({ message: "Internal server error" }); // JSON response for 500 errors
+        return res
+            .status(404)
+            .json(err);
     }
 };
 
