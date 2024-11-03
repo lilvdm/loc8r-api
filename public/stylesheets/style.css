@@ -1,0 +1,165 @@
+@import url("//fonts.googleapis.com/css?family=Lobster|Cabin:400,700");
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Lobster', cursive;
+}
+
+.navbar-brand {
+    font-family: 'Lobster', cursive;
+    color: white;
+}
+
+legend {
+    font-family: 'Lobster', cursive;
+}
+
+body {
+    font-family: "Cabin", Arial, sans-serif;
+    color: #FFFFFF;
+    background-color: #108a93;
+}
+
+/* Change the color of the navigation links (e.g., 'About') to white */
+.navbar-nav .nav-link {
+    color: white !important; /* Ensure the About link is white */
+}
+
+/* General card styling */
+.card-primary {
+    background-color: #17C0CC; /* Background color for card elements */
+    color: black; /* Set the text color inside cards to black */
+    border: 1px solid white; /* Thin white frame */
+    border-radius: 10px; /* Add rounded corners */
+}
+
+    /* Ensure titles and card text are black */
+    .card-primary .card-title,
+    .card-primary p,
+    .card-primary span {
+        color: black; /* Set all titles, paragraphs, and spans inside cards to black */
+    }
+
+/* Style the "Customer reviews" card specifically */
+.review-card.card-primary {
+    background-color: #15A0A8; /* Slightly darker shade for customer reviews */
+    color: black; /* Set the text to black */
+}
+
+/* Ensure the rating, review author, and timestamp have their own barriers */
+.review-header span.rating,
+.review-header span.reviewAuthor,
+.review-header small.reviewTimestamp {
+    background-color: gray; /* Gray background for rating, review author, and timestamp */
+    color: black; /* Text color inside the barriers */
+    padding: 5px; /* Add padding for better spacing */
+    display: inline-block; /* Ensure the barriers wrap around the content */
+}
+
+/* Review text should have white text */
+.review-card .review-text {
+    color: white; /* Set review text color to white */
+}
+
+/* Add review button remains red */
+.review-card .btn-primary {
+    background-color: red;
+    border-color: red; /* Ensure the button border matches the background */
+    float: right; /* Ensure the badge is aligned to the right */
+}
+
+    .review-card .btn-primary:hover {
+        background-color: darkred; /* Darker red color on hover */
+    }
+
+/* General styling for span.badge */
+span.badge {
+    color: white; /* Set badge text color to white */
+}
+
+/* Specific style for warning badges */
+span.badge-warning {
+    color: white; /* Text should be white */
+}
+
+/* Style for the '100m' badge, making it red and aligning it to the right */
+span.badge-default.float-right {
+    background-color: red; /* Set background to red */
+    color: white; /* Set the text color to white for contrast */
+    border: 1px solid white; /* Thin white border for clarity */
+    float: right; /* Ensure the badge is aligned to the right */
+    margin-left: auto; /* Pushes the badge to the far right */
+    padding: 5px 10px; /* Optional: Add padding for consistency */
+    border-radius: 5px; /* Keep the rounded corners */
+}
+
+/* Review author and timestamp with #13A5AF background */
+.review-author-barrier {
+    background-color: #13A5AF; /* Background color for review author and timestamp */
+    padding: 5px 10px; /* Add some padding for spacing */
+    border-radius: 5px; /* Round the corners */
+    display: inline-block; /* Ensure the barrier wraps around the content */
+}
+
+/* Set #13A5AF shade for review author and timestamp text */
+span.reviewAuthor {
+    color: black; /* Ensure text color for review author is black */
+    font-weight: bold; /* Optional: Make the author name bold */
+}
+
+small.reviewTimestamp {
+    color: black; /* Ensure text color for review timestamp is black */
+    font-style: italic; /* Optional: Make the timestamp italic */
+}
+
+/* Change the background color of card blocks */
+.card-block {
+    background-color: #13A5AF; /* Set barrier background to #13A5AF */
+    color: black; /* Ensure text inside card blocks is black */
+    border-radius: 10px; /* Rounded corners */
+    padding: 20px; /* Add padding for space */
+}
+
+/* Change the badge background color for warning badges in both pug files */
+span.badge-warning {
+    background-color: orange; /* Set badge background to yellow */
+    color: white; /* Set badge text color to black */
+}
+
+/* Location-specific styling for locations-list.pug */
+/* Set location name, address, and badges to white */
+h4 a,
+p.address,
+span.badge {
+    color: white; /* Make the location name, address, and badges white */
+}
+
+/* Ensure the badges inside the location block have white text */
+span.badge-warning {
+    background-color: orange;
+    color: white; /* Ensure the text inside badges is black */
+}
+.btn.btn-primary {
+    background-color: red; /* Red background */
+    border-color: red; /* Red colored barrier (border) */
+    color: white; /* Ensure the text is readable */
+}
+
+    .btn.btn-primary:hover {
+        background-color: darkred; /* Darken the background on hover */
+        border-color: darkred; /* Change border color on hover */
+    }
+/* Styling the 'Add my review' button with a smaller red barrier and moving it to the right */
+.btn.btn-primary {
+    background-color: red; /* Red background */
+    color: white; /* White text */
+    border: 2px solid red; /* Smaller red barrier (2px) around the button */
+    margin-left: auto; /* Shift the button to the right */
+    display: block; /* Ensure it's a block element to respect margins */
+    width: auto; /* Set width based on content */
+}
+
+    .btn.btn-primary:hover {
+        background-color: darkred; /* Darken background on hover */
+        border-color: darkred; /* Darken the border on hover */
+    }
+
