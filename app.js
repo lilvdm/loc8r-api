@@ -39,7 +39,7 @@ app.use(express.static(path.join(__dirname, 'app_public', 'build')));
 app.use(passport.initialize());
 
 // app.use('/users', usersRouter);
-app.use('/', apiRouter);
+app.use('/api', apiRouter);
 
 app.use((err, req, res, next) => {
     if (err.name === 'UnauthorizedError') {
