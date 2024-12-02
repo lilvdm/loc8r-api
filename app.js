@@ -38,7 +38,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'app_public', 'build')));
 app.use(passport.initialize());
 
-// app.use('/users', usersRouter);
+app.use('/users', usersRouter);
 app.use('/api', apiRouter);
 
 app.use((err, req, res, next) => {
@@ -67,5 +67,4 @@ app.get('*', function (req, res) {
     res.sendFile(path.join(__dirname, 'app_public', 'build', 'index.html'));
 });
 
-module.exports = app;
-
+module.exports = app; 

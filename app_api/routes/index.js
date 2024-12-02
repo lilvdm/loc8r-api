@@ -4,11 +4,11 @@ const ctrlLocations = require('../controllers/locations');
 const ctrlReviews = require('../controllers/reviews');
 const ctrlAuth = require('../controllers/authentication');
 const { expressjwt: jwt } = require('express-jwt');
-
-// JWT authentication middleware
 const auth = jwt({
     secret: process.env.JWT_SECRET,
-    algorithms: ['HS256'],
+    algorithms: ['HS256'], // default algorithm
+    // userProperty: 'payload'
+    userProperty: 'req.auth'
 });
 
 // Location routes
@@ -24,23 +24,17 @@ router
     .delete(ctrlLocations.locationsDeleteOne);
 
 // Review routes
-router
-    .route('/locations/:locationid/reviews')
+router.route('/locations/:locationid/reviews')
     .post(auth, ctrlReviews.reviewsCreate);
+
 
 router
     .route('/locations/:locationid/reviews/:reviewid')
     .get(ctrlReviews.reviewsReadOne)
-    .put(auth, ctrlReviews.reviewsUpdateOne)
-    .delete(auth, ctrlReviews.reviewsDeleteOne);
+    .put(auth, ctrlReviews.reviewsUpdateOne)      // Added update route for reviews
+    .delete(auth, ctrlReviews.reviewsDeleteOne);  // Added delete route for reviews
 
-// Authentication routes
 router.post('/register', ctrlAuth.register);
 router.post('/login', ctrlAuth.login);
-
-// Handle undefined routes
-router.use((req, res) => {
-    res.status(404).json({ message: 'Endpoint not found' });
-});
 
 module.exports = router;
