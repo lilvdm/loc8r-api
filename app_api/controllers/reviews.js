@@ -1,5 +1,24 @@
 const mongoose = require('mongoose');
 const Loc = mongoose.model('Location');
+const User = mongoose.model('User');
+
+const getAuthor = async (req, res) => {
+    try {
+        if (!req.auth || !req.auth.email) {
+            return res.status(404).json({ "message": "User not found" });
+        }
+
+        const user = await User.findOne({ email: req.auth.email }).exec();
+        if (!user) {
+            return res.status(404).json({ "message": "User not found" });
+        }
+
+        return user.name; // Return the user's name to the caller
+    } catch (err) {
+        console.error("Error in getAuthor:", err);
+        res.status(500).json(err);
+    }
+};
 
 // Helper function to update the average rating
 const doSetAverageRating = async (location) => {
@@ -32,31 +51,27 @@ const updateAverageRating = async (locationId) => {
     }
 };
 
-// Create a new review
 const reviewsCreate = async (req, res) => {
-    const locationId = req.params.locationid;
-
-    if (!locationId) {
-        return res.status(404).json({ "message": "Location ID is required" });
-    }
-
     try {
-        const location = await Loc.findById(locationId).select('reviews');
+        const userName = await getAuthor(req, res);
+        if (!userName) {
+            return; // Error response is already sent by `getAuthor`
+        }
+
+        const locationId = req.params.locationid;
+        if (!locationId) {
+            return res.status(404).json({ "message": "Location not found" });
+        }
+
+        const location = await Loc.findById(locationId).select('reviews').exec();
         if (!location) {
             return res.status(404).json({ "message": "Location not found" });
         }
 
-        const { author, rating, reviewText } = req.body;
-        location.reviews.push({ author, rating, reviewText });
-
-        const updatedLocation = await location.save();
-        await updateAverageRating(updatedLocation._id); // Update average rating
-
-        const newReview = updatedLocation.reviews.slice(-1).pop(); // Get the newly added review
-        return res.status(201).json(newReview);
+        await doAddReview(req, res, location, userName);
     } catch (err) {
-        console.error("Error creating review:", err);
-        return res.status(400).json(err);
+        console.error("Error in reviewsCreate:", err);
+        res.status(500).json(err);
     }
 };
 
@@ -153,6 +168,33 @@ const reviewsDeleteOne = async (req, res) => {
     }
 };
 
+const doAddReview = async (req, res, location, author) => {
+    try {
+        if (!location) {
+            return res.status(404).json({ "message": "Location not found" });
+        }
+
+        const { rating, reviewText } = req.body;
+
+        location.reviews.push({
+            author,
+            rating,
+            reviewText,
+        });
+
+        const updatedLocation = await location.save();
+
+        // Update the average rating
+        await updateAverageRating(updatedLocation._id);
+
+        // Get the newly added review
+        const thisReview = updatedLocation.reviews.slice(-1).pop();
+        return res.status(201).json(thisReview);
+    } catch (err) {
+        console.error("Error in doAddReview:", err);
+        return res.status(400).json(err);
+    }
+};
 
 module.exports = {
     reviewsCreate,

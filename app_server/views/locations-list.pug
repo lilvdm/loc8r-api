@@ -6,24 +6,29 @@ block content
   .row.banner
     .col-12
       h1= pageHeader.title
-      small &nbsp;#{pageHeader.strapline}
+        small &nbsp;#{pageHeader.strapLine}
 
   .row
     .col-12.col-md-8
       .error= message
-
-      each location in locations
+      app-home-list
         .card
           .card-block
             h4
               a(href=`/location/${location._id}`)= location.name
               +outputRating(location.rating)
-              // Add a custom class for styling the distance
-              span.badge.badge-pill.badge-default.float-right.distance-badge= location.distance
+              span.badge.badge-pill.badge-default.float-end= location.distance
             p.address= location.address
             .facilities
               each facility in location.facilities
                 span.badge.badge-warning= facility
 
+
     .col-12.col-md-4
       p.lead= sidebar
+
+  block scripts
+    script(src='/build/runtime.e4985b6c090739db.js')
+    script(src='/build/polyfills.05600847d04151be.js')
+    script(src='/build/main.f7c1f470a433b9bc.js')
+
